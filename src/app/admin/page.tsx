@@ -6,7 +6,20 @@ import axios from "axios";
 import { Button } from "@/components/ui/Button";
 import styles from "./Admin.module.css";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, File, CheckCircle, XCircle, LogOut, Terminal, Apple, Monitor } from "lucide-react";
+import { Upload, File, CheckCircle, XCircle, LogOut, Terminal, Monitor } from "lucide-react";
+
+const AppleLogo = ({ size = 24, className = "" }: { size?: number, className?: string }) => (
+    <svg
+        viewBox="0 0 384 512"
+        width={size}
+        height={size}
+        fill="currentColor"
+        className={className}
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 52.3-11.4 69.5-34.3z" />
+    </svg>
+);
 
 interface LogEntry {
     id: string;
@@ -39,22 +52,39 @@ export default function AdminPage() {
         addLog(`Starting upload for ${platform}: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
 
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('platform', platform);
+            const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks (safe for Cloudflare)
+            const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+            let finalPath = "";
 
-            addLog("Uploading to local server...", 'info');
+            addLog(`Uploading in ${totalChunks} chunks...`, 'info');
 
-            const res = await axios.post('/api/admin/upload/local', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-                onUploadProgress: (progressEvent) => {
-                    const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || file.size));
-                    setProgress(percentCompleted);
+            for (let i = 0; i < totalChunks; i++) {
+                const start = i * CHUNK_SIZE;
+                const end = Math.min(file.size, start + CHUNK_SIZE);
+                const chunk = file.slice(start, end);
+
+                const formData = new FormData();
+                formData.append('chunk', chunk);
+                formData.append('filename', file.name);
+                formData.append('chunkIndex', i.toString());
+                formData.append('totalChunks', totalChunks.toString());
+                formData.append('platform', platform);
+
+                const res = await axios.post('/api/admin/upload/chunk', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                if (res.data.completed) {
+                    finalPath = res.data.path;
                 }
-            });
+
+                // Update progress
+                const percentCompleted = Math.round(((i + 1) / totalChunks) * 100);
+                setProgress(percentCompleted);
+            }
 
             addLog(`Upload Complete! File saved as latest-${platform}.${platform === 'mac' ? 'dmg' : 'exe'}`, 'success');
-            addLog(`Download URL: ${window.location.origin}${res.data.path}`, 'success');
+            addLog(`Download URL: ${window.location.origin}${finalPath}`, 'success');
 
         } catch (error: any) {
             console.error(error);
@@ -125,7 +155,7 @@ export default function AdminPage() {
                 >
                     <div className={styles.cardHeader}>
                         <div className={styles.iconWrapper}>
-                            <Apple size={24} />
+                            <AppleLogo size={24} />
                         </div>
                         <div>
                             <h2>macOS Binary</h2>
