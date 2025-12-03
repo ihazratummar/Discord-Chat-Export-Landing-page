@@ -100,7 +100,7 @@ export const Pricing = () => {
                             </li>
                         </ul>
 
-                        <a href="/downloads/latest-win.exe" download style={{ width: '100%' }}>
+                        <a href="/api/download/latest-win.exe" download style={{ width: '100%' }}>
                             <Button variant="outline" fullWidth>Download Free</Button>
                         </a>
                     </div>

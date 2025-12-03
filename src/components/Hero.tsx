@@ -70,12 +70,12 @@ export const Hero = () => {
                         transition={{ duration: 0.5, delay: 0.3 }}
                         className={styles.buttons}
                     >
-                        <a href="/downloads/latest-mac.dmg" download>
+                        <a href="/api/download/latest-mac.dmg" download target="_blank" rel="noopener noreferrer">
                             <Button size="lg" icon={<AppleLogo size={20} />}>
                                 Download for macOS
                             </Button>
                         </a>
-                        <a href="/downloads/latest-win.exe" download>
+                        <a href="/api/download/latest-win.exe" download target="_blank" rel="noopener noreferrer">
                             <Button size="lg" variant="secondary" icon={<Monitor size={20} />}>
                                 Download for Windows
                             </Button>
