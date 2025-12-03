@@ -1,0 +1,30 @@
+.footer {
+    padding: 4rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: #0f172a;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.links {
+    display: flex;
+    gap: 2rem;
+}
+
+.link:hover {
+    color: var(--foreground);
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        gap: 2rem;
+        text-align: center;
+    }
+}

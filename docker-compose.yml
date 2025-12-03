@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  landing_page:
+    container_name: discord_chat_exporter_landing_page
+    build: .
+    restart: always
+    ports:
+      - "6060:6060"
+    env_file:
+      - ${ENV_FILE}
+    volumes:
+      - /home/app_data/discord_downloads:/app/public/downloads
+    networks:
+      custom_bridge:
+        ipv4_address: 172.25.0.9
+
+networks:
+  custom_bridge:
+    external: true
