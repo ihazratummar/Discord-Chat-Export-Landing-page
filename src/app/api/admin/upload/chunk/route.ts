@@ -51,6 +51,16 @@ export async function POST(request: Request) {
                 const { pipeline } = await import('stream/promises');
                 const { createReadStream, createWriteStream } = await import('fs');
 
+                // Ensure destination does not exist or we can overwrite it
+                if (existsSync(finalPath)) {
+                    try {
+                        await unlink(finalPath);
+                    } catch (unlinkError) {
+                        console.warn("Could not delete existing file (might be permission issue):", unlinkError);
+                        // If we can't delete it, we probably can't write to it either, but let's try
+                    }
+                }
+
                 await pipeline(
                     createReadStream(tempFilePath),
                     createWriteStream(finalPath)
