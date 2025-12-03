@@ -100,7 +100,7 @@ export const Pricing = () => {
                             </li>
                         </ul>
 
-                        <a href="/api/download/latest-win.exe" download style={{ width: '100%' }}>
+                        <a href="https://github.com/ihazratummar/DCE-Downloads/releases/latest/download/DiscordChatExporter-Windows.exe" download style={{ width: '100%' }}>
                             <Button variant="outline" fullWidth>Download Free</Button>
                         </a>
                     </div>

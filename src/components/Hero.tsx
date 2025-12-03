@@ -70,12 +70,12 @@ export const Hero = () => {
                         transition={{ duration: 0.5, delay: 0.3 }}
                         className={styles.buttons}
                     >
-                        <a href="/api/download/latest-mac.dmg" download target="_blank" rel="noopener noreferrer">
+                        <a href="https://github.com/ihazratummar/DCE-Downloads/releases/latest/download/DiscordChatExporter-Mac.dmg" download target="_blank" rel="noopener noreferrer">
                             <Button size="lg" icon={<AppleLogo size={20} />}>
                                 Download for macOS
                             </Button>
                         </a>
-                        <a href="/api/download/latest-win.exe" download target="_blank" rel="noopener noreferrer">
+                        <a href="https://github.com/ihazratummar/DCE-Downloads/releases/latest/download/DiscordChatExporter-Windows.exe" download target="_blank" rel="noopener noreferrer">
                             <Button size="lg" variant="secondary" icon={<Monitor size={20} />}>
                                 Download for Windows
                             </Button>
