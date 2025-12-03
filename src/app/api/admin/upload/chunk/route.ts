@@ -46,17 +46,24 @@ export async function POST(request: Request) {
             const finalFilename = platform === 'mac' ? 'latest-mac.dmg' : 'latest-win.exe';
             const finalPath = path.join(uploadDir, finalFilename);
 
-            // Move temp file to final file (copy + unlink to handle cross-device moves)
+            // Move temp file to final file using streams (handles cross-device & memory)
             try {
-                await writeFile(finalPath, await import('fs/promises').then(fs => fs.readFile(tempFilePath)));
-                await unlink(tempFilePath);
-            } catch (moveError) {
-                console.error("Move failed, trying rename:", moveError);
-                await rename(tempFilePath, finalPath);
-            }
+                const { pipeline } = await import('stream/promises');
+                const { createReadStream, createWriteStream } = await import('fs');
 
-            console.log(`Upload complete: ${finalPath}`);
-            return NextResponse.json({ success: true, completed: true, path: `/downloads/${finalFilename}` });
+                await pipeline(
+                    createReadStream(tempFilePath),
+                    createWriteStream(finalPath)
+                );
+
+                await unlink(tempFilePath);
+                console.log(`Upload complete: ${finalPath}`);
+                return NextResponse.json({ success: true, completed: true, path: `/downloads/${finalFilename}` });
+
+            } catch (moveError: any) {
+                console.error("Move failed:", moveError);
+                return NextResponse.json({ error: `Move failed: ${moveError.message}` }, { status: 500 });
+            }
         }
 
         return NextResponse.json({ success: true, completed: false });

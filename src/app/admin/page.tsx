@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/Button";
 import styles from "./Admin.module.css";
@@ -43,22 +43,45 @@ export default function AdminPage() {
         }, ...prev]);
     };
 
+    // Check for incomplete uploads on mount
+    useEffect(() => {
+        const savedUpload = localStorage.getItem('incomplete_upload');
+        if (savedUpload) {
+            const { name, size, platform, progress } = JSON.parse(savedUpload);
+            addLog(`Found incomplete upload for ${name}. Select the file again to resume from ${progress}%`, 'info');
+        }
+    }, []);
+
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, platform: 'mac' | 'win') => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setUploading(platform);
-        setProgress(0);
-        addLog(`Starting upload for ${platform}: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
+
+        // Check for resume
+        const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+        let startChunk = 0;
+
+        const savedUpload = localStorage.getItem('incomplete_upload');
+        if (savedUpload) {
+            const saved = JSON.parse(savedUpload);
+            if (saved.name === file.name && saved.size === file.size && saved.platform === platform) {
+                startChunk = saved.chunkIndex + 1;
+                addLog(`Resuming upload from chunk ${startChunk + 1}/${totalChunks}`, 'info');
+            }
+        }
+
+        if (startChunk === 0) {
+            addLog(`Starting upload for ${platform}: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
+            setProgress(0);
+        }
 
         try {
-            const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks (safe for Cloudflare)
-            const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+            addLog(`Uploading ${totalChunks - startChunk} remaining chunks...`, 'info');
             let finalPath = "";
 
-            addLog(`Uploading in ${totalChunks} chunks...`, 'info');
-
-            for (let i = 0; i < totalChunks; i++) {
+            for (let i = startChunk; i < totalChunks; i++) {
                 const start = i * CHUNK_SIZE;
                 const end = Math.min(file.size, start + CHUNK_SIZE);
                 const chunk = file.slice(start, end);
@@ -81,10 +104,22 @@ export default function AdminPage() {
                 // Update progress
                 const percentCompleted = Math.round(((i + 1) / totalChunks) * 100);
                 setProgress(percentCompleted);
+
+                // Save progress
+                localStorage.setItem('incomplete_upload', JSON.stringify({
+                    name: file.name,
+                    size: file.size,
+                    platform,
+                    chunkIndex: i,
+                    progress: percentCompleted
+                }));
             }
 
             addLog(`Upload Complete! File saved as latest-${platform}.${platform === 'mac' ? 'dmg' : 'exe'}`, 'success');
             addLog(`Download URL: ${window.location.origin}${finalPath}`, 'success');
+
+            // Clear saved progress
+            localStorage.removeItem('incomplete_upload');
 
         } catch (error: any) {
             console.error(error);
