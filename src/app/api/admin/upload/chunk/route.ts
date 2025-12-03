@@ -23,8 +23,14 @@ export async function POST(request: Request) {
         const tempDir = path.join(uploadDir, 'temp');
 
         // Ensure directories exist
-        if (!existsSync(uploadDir)) await mkdir(uploadDir, { recursive: true });
-        if (!existsSync(tempDir)) await mkdir(tempDir, { recursive: true });
+        try {
+            if (!existsSync(uploadDir)) await mkdir(uploadDir, { recursive: true });
+            if (!existsSync(tempDir)) await mkdir(tempDir, { recursive: true });
+        } catch (err) {
+            console.error("Directory creation failed:", err);
+            // Fallback or re-throw based on severity, but for EACCES we need the host volume fix
+            throw err;
+        }
 
         const tempFilePath = path.join(tempDir, `${filename}.part`);
 

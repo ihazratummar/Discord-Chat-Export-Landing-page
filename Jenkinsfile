@@ -38,11 +38,11 @@ pipeline {
         stage('Deploy with Docker Compose') {
             steps {
                 dir('landing_page') {
-                    sh """
-                        # Ensure persistent downloads directory exists on host
-                        mkdir -p /home/app_data/discord_downloads
-                        chmod 777 /home/app_data/discord_downloads
+                    // Ensure the persistent directory exists on the host with full permissions
+                    sh "mkdir -p /home/app_data/discord_downloads"
+                    sh "chmod -R 777 /home/app_data/discord_downloads"
 
+                    sh """
                         # Download standalone docker-compose binary (if not present)
                         if [ ! -f docker-compose ]; then
                             curl -SL https://github.com/docker/compose/releases/download/v2.30.3/docker-compose-linux-x86_64 -o docker-compose

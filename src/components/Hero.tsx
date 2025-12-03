@@ -1,10 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './Hero.module.css';
 import { Button } from './ui/Button';
-import { Download, ShieldCheck, Monitor } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Download, ShieldCheck, Monitor, Copy, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AppleLogo = ({ size = 20, className = "" }: { size?: number, className?: string }) => (
     <svg
@@ -20,6 +20,15 @@ const AppleLogo = ({ size = 20, className = "" }: { size?: number, className?: s
 );
 
 export const Hero = () => {
+    const [showMacHelp, setShowMacHelp] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const copyCommand = () => {
+        navigator.clipboard.writeText('sudo xattr -cr /Applications/"Discord Chat Exporter.app"');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     return (
         <section className={styles.hero} id="hero">
             <div className={styles.bgGlow} />
@@ -72,6 +81,38 @@ export const Hero = () => {
                             </Button>
                         </a>
                     </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                    >
+                        <button
+                            onClick={() => setShowMacHelp(!showMacHelp)}
+                            className={styles.helpLink}
+                        >
+                            macOS: "App is damaged" or won't open?
+                        </button>
+                    </motion.div>
+
+                    <AnimatePresence>
+                        {showMacHelp && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className={styles.macHelp}
+                            >
+                                <p>If you see a warning that the app is damaged or from an unidentified developer, run this command in Terminal after dragging the app to your Applications folder:</p>
+                                <div className={styles.codeBlock}>
+                                    <code>sudo xattr -cr /Applications/"Discord Chat Exporter.app"</code>
+                                    <button onClick={copyCommand} className={styles.copyButton}>
+                                        {copied ? <Check size={14} /> : <Copy size={14} />}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 <motion.div
