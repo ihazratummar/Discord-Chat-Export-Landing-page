@@ -33,7 +33,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Switch to non-root user
-USER nextjs
+# USER nextjs
+# Run as root to avoid permission issues with host volumes
+USER root
 
 # Expose the port
 EXPOSE 6060

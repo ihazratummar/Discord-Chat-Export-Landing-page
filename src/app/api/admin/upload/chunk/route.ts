@@ -56,8 +56,7 @@ export async function POST(request: Request) {
                     try {
                         await unlink(finalPath);
                     } catch (unlinkError) {
-                        console.warn("Could not delete existing file (might be permission issue):", unlinkError);
-                        // If we can't delete it, we probably can't write to it either, but let's try
+                        console.warn(`Could not delete existing file ${finalPath}:`, unlinkError);
                     }
                 }
 
@@ -65,6 +64,13 @@ export async function POST(request: Request) {
                     createReadStream(tempFilePath),
                     createWriteStream(finalPath)
                 );
+
+                // Ensure 777 permissions on the new file so anyone can read/overwrite it later
+                try {
+                    await import('fs/promises').then(fs => fs.chmod(finalPath, 0o777));
+                } catch (chmodError) {
+                    console.warn("Could not chmod final file:", chmodError);
+                }
 
                 await unlink(tempFilePath);
                 console.log(`Upload complete: ${finalPath}`);

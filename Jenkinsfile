@@ -40,7 +40,11 @@ pipeline {
                 dir('landing_page') {
                     // Ensure the persistent directory exists on the host with full permissions
                     sh "mkdir -p /home/app_data/discord_downloads"
+                    // Forcefully set permissions for directory and ALL existing files to ensure overwrite is possible
                     sh "chmod -R 777 /home/app_data/discord_downloads"
+                    // Also ensure ownership is generic if possible (though 777 usually covers it)
+                    // sh "chown -R 1001:1001 /home/app_data/discord_downloads" 
+
 
                     sh """
                         # Download standalone docker-compose binary (if not present)
