@@ -21,6 +21,7 @@
 
 html,
 body {
+  scroll-behavior: smooth;
   max-width: 100vw;
   overflow-x: hidden;
   background-color: var(--background);
@@ -63,9 +64,17 @@ a {
 
 /* Animations */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .animate-float {

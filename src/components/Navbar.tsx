@@ -41,7 +41,7 @@ export const Navbar = () => {
                 </div>
 
                 <div className={styles.actions}>
-                    <Link href="#">
+                    <Link href="#hero">
                         <Button variant="primary" size="md" icon={<Download size={18} />}>
                             Download
                         </Button>

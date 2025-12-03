@@ -1,3 +1,4 @@
+
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
@@ -10,12 +11,13 @@ const handler = NextAuth({
     ],
     callbacks: {
         async signIn({ user }) {
-            if (user.email === "hazratummar9@gmail.com") {
-                return true;
-            }
-            return false;
+            // Restrict access to specific email
+            const allowedEmail = "hazratummar9@gmail.com";
+            return user.email === allowedEmail;
         },
     },
+    // Ensure cookies work on both localhost and production
+    useSecureCookies: process.env.NODE_ENV === 'production',
     pages: {
         error: "/auth/error", // Error code passed in query string as ?error=
     },
