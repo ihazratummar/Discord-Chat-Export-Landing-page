@@ -18,17 +18,16 @@ export async function POST(request: Request) {
 
         const buffer = Buffer.from(await file.arrayBuffer());
 
-        // Temp directory for chunks
+        // Temp directory for chunks (use system temp to avoid permission issues)
+        const tempDir = path.join('/tmp', 'discord-chat-exporter-uploads');
         const uploadDir = path.join(process.cwd(), 'public', 'downloads');
-        const tempDir = path.join(uploadDir, 'temp');
 
         // Ensure directories exist
         try {
-            if (!existsSync(uploadDir)) await mkdir(uploadDir, { recursive: true });
             if (!existsSync(tempDir)) await mkdir(tempDir, { recursive: true });
+            if (!existsSync(uploadDir)) await mkdir(uploadDir, { recursive: true });
         } catch (err) {
             console.error("Directory creation failed:", err);
-            // Fallback or re-throw based on severity, but for EACCES we need the host volume fix
             throw err;
         }
 
@@ -47,8 +46,15 @@ export async function POST(request: Request) {
             const finalFilename = platform === 'mac' ? 'latest-mac.dmg' : 'latest-win.exe';
             const finalPath = path.join(uploadDir, finalFilename);
 
-            // Rename temp file to final file
-            await rename(tempFilePath, finalPath);
+            // Move temp file to final file (copy + unlink to handle cross-device moves)
+            try {
+                await writeFile(finalPath, await import('fs/promises').then(fs => fs.readFile(tempFilePath)));
+                await unlink(tempFilePath);
+            } catch (moveError) {
+                console.error("Move failed, trying rename:", moveError);
+                await rename(tempFilePath, finalPath);
+            }
+
             console.log(`Upload complete: ${finalPath}`);
             return NextResponse.json({ success: true, completed: true, path: `/downloads/${finalFilename}` });
         }
